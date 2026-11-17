@@ -1,0 +1,48 @@
+"""A small HTTP target for the K12 deployment pipeline."""
+import json
+import os
+import signal
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+VERSION = os.environ.get("VERSION", "dev")
+COMMIT = os.environ.get("COMMIT", "unknown")
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/":
+            body = f"hello from k12 {VERSION}\n".encode()
+            content_type = "text/plain; charset=utf-8"
+        elif self.path == "/healthz":
+            body = b"ok"
+            content_type = "text/plain; charset=utf-8"
+        elif self.path == "/version":
+            body = json.dumps({"version": VERSION, "commit": COMMIT}).encode()
+            content_type = "application/json"
+        else:
+            self.send_error(404)
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+def main():
+    server = ThreadingHTTPServer(("0.0.0.0", 8080), Handler)
+    # shutdown must run outside the thread executing serve_forever.
+    def stop(_signum, _frame):
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+    try:
+        server.serve_forever()
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()
