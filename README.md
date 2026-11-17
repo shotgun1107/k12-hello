@@ -22,3 +22,7 @@ docker run --rm --read-only -p 8080:8080 k12-hello
 ```
 
 The development VM had neither Podman nor Docker, so the container build was not tested there.
+
+## Release request
+
+From a clean, up-to-date main: `bash tools/request-release.sh <semver> <summary> <test summary>`. This only asks for a release; a human must approve it before deploy.
