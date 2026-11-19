@@ -1,12 +1,12 @@
 {
-  "migration": "expand",
+  "migration": "contract",
   "accepts": [
-    "v2"
+    "v3"
   ],
   "database": {
-    "from": "v1",
-    "to": "v2",
-    "script": "ALTER TABLE visits ADD COLUMN total INTEGER NOT NULL DEFAULT 0; UPDATE visits SET total=count; CREATE TRIGGER visits_sync AFTER UPDATE OF count ON visits BEGIN UPDATE visits SET total=NEW.count WHERE id=NEW.id; END;",
-    "script_digest": "sha256:b395b70a3116dfe57513a513b508ee54152afca178487c31e0e6eec380e30dbe"
+    "from": "v2",
+    "to": "v3",
+    "script": "DROP TRIGGER visits_sync; ALTER TABLE visits DROP COLUMN count;",
+    "script_digest": "sha256:5a2ee257b214ef3d169edc196bd822987a932bbacc00d5ac1ee312f9b22d97d7"
   }
 }
