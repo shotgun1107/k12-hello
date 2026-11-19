@@ -1,5 +1,6 @@
 """A small HTTP target for the K12 deployment pipeline."""
 import json
+import sqlite3
 import os
 import signal
 import threading
@@ -9,12 +10,21 @@ VERSION = os.environ.get("VERSION", "dev")
 COMMIT = os.environ.get("COMMIT", "unknown")
 
 
+def visit():
+    with sqlite3.connect(os.environ.get("K12_DB","/data/hello.sqlite"),timeout=10) as db:
+        db.execute("UPDATE visits SET count=count+1 WHERE id=1")
+        return db.execute("SELECT count FROM visits WHERE id=1").fetchone()[0]
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
-            body = f"hello from k12 {VERSION}\n".encode()
+            body = f"hello from k12 {VERSION} visits={visit()}\n".encode()
             content_type = "text/plain; charset=utf-8"
         elif self.path == "/healthz":
+            with sqlite3.connect("file:"+os.environ.get("K12_DB","/data/hello.sqlite")+"?mode=ro",uri=True) as db:
+                if db.execute("PRAGMA user_version").fetchone()[0] not in (1, 2):
+                    self.send_error(503); return
+                db.execute("SELECT count FROM visits WHERE id=1").fetchone()
             body = b"ok"
             content_type = "text/plain; charset=utf-8"
         elif self.path == "/version":

@@ -1,0 +1,13 @@
+{
+  "migration": "expand",
+  "accepts": [
+    "v1",
+    "v2"
+  ],
+  "database": {
+    "from": "S0",
+    "to": "v1",
+    "script": "CREATE TABLE visits(id INTEGER PRIMARY KEY CHECK(id=1), count INTEGER NOT NULL); INSERT INTO visits VALUES(1,0);",
+    "script_digest": "sha256:b50db9c84e6e750eab3657beeb295f705bcfa111c5abc56a21251698c31cd0f4"
+  }
+}
