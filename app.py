@@ -27,7 +27,7 @@ class Handler(BaseHTTPRequestHandler):
             content_type = "text/plain; charset=utf-8"
         elif self.path == "/healthz":
             with sqlite3.connect("file:"+os.environ.get("K12_DB","/data/hello.sqlite")+"?mode=ro",uri=True) as db:
-                if db.execute("PRAGMA user_version").fetchone()[0] not in (1, 2):
+                if db.execute("PRAGMA user_version").fetchone()[0] not in (2,):
                     self.send_error(503); return
                 db.execute("SELECT count FROM visits WHERE id=1").fetchone()
             body = b"ok"

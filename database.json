@@ -1,13 +1,12 @@
 {
   "migration": "expand",
   "accepts": [
-    "v1",
     "v2"
   ],
   "database": {
-    "from": "S0",
-    "to": "v1",
-    "script": "CREATE TABLE visits(id INTEGER PRIMARY KEY CHECK(id=1), count INTEGER NOT NULL); INSERT INTO visits VALUES(1,0);",
-    "script_digest": "sha256:b50db9c84e6e750eab3657beeb295f705bcfa111c5abc56a21251698c31cd0f4"
+    "from": "v1",
+    "to": "v2",
+    "script": "ALTER TABLE visits ADD COLUMN total INTEGER NOT NULL DEFAULT 0; UPDATE visits SET total=count; CREATE TRIGGER visits_sync AFTER UPDATE OF count ON visits BEGIN UPDATE visits SET total=NEW.count WHERE id=NEW.id; END;",
+    "script_digest": "sha256:b395b70a3116dfe57513a513b508ee54152afca178487c31e0e6eec380e30dbe"
   }
 }
