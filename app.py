@@ -1,4 +1,6 @@
 """A small HTTP target for the K12 deployment pipeline."""
+import hashlib
+from pathlib import Path
 import json
 import sqlite3
 import os
@@ -10,6 +12,9 @@ VERSION = os.environ.get("VERSION", "dev")
 COMMIT = os.environ.get("COMMIT", "unknown")
 
 
+def greeting_hash():
+    return hashlib.sha256(Path('/run/secrets/hello-greeting').read_bytes()).hexdigest()[:8]
+
 def visit():
     with sqlite3.connect(os.environ.get("K12_DB","/data/hello.sqlite"),timeout=10) as db:
         db.execute("UPDATE visits SET count=count+1 WHERE id=1")
@@ -18,7 +23,7 @@ def visit():
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
-            body = f"hello from k12 {VERSION} visits={visit()}\n".encode()
+            body = f"hello from k12 {VERSION} visits={visit()} secret-sha256={greeting_hash()}\n".encode()
             content_type = "text/plain; charset=utf-8"
         elif self.path == "/healthz":
             with sqlite3.connect("file:"+os.environ.get("K12_DB","/data/hello.sqlite")+"?mode=ro",uri=True) as db:
